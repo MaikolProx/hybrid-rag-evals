@@ -7,10 +7,9 @@ split on paragraph boundaries.
 from __future__ import annotations
 
 import re
-from typing import List, Tuple
 
 
-def chunk_markdown(text: str, max_chars: int = 2000) -> List[Tuple[str, str]]:
+def chunk_markdown(text: str, max_chars: int = 2000) -> list[tuple[str, str]]:
     """Split markdown into (heading_path, chunk_text) pairs.
 
     Args:
@@ -18,13 +17,14 @@ def chunk_markdown(text: str, max_chars: int = 2000) -> List[Tuple[str, str]]:
         max_chars: soft budget per chunk; long sections are split by paragraph.
     """
     sections = _split_sections(text)
-    chunks: List[Tuple[str, str]] = []
+    chunks: list[tuple[str, str]] = []
     for heading, body in sections:
         if len(body) <= max_chars:
             chunks.append((heading, body))
             continue
         paragraphs = [p.strip() for p in body.split("\n\n") if p.strip()]
-        acc, acc_len = [], 0
+        acc: list[str] = []
+        acc_len = 0
         for para in paragraphs:
             if acc_len + len(para) > max_chars and acc:
                 chunks.append((heading, "\n\n".join(acc)))
@@ -40,7 +40,7 @@ def chunk_markdown(text: str, max_chars: int = 2000) -> List[Tuple[str, str]]:
 _HEADING_RE = re.compile(r"^(#{1,3})\s+(.+?)\s*$", re.MULTILINE)
 
 
-def _split_sections(text: str) -> List[Tuple[str, str]]:
+def _split_sections(text: str) -> list[tuple[str, str]]:
     """Group markdown into top-level sections; subtitles attach to their parent.
 
     `#` headings start a new section; `##`/`###` content (with its heading
@@ -48,9 +48,9 @@ def _split_sections(text: str) -> List[Tuple[str, str]]:
     not lost when the parent chunk is later split by budget.
     """
     matches = list(_HEADING_RE.finditer(text))
-    sections: List[Tuple[str, str]] = []
+    sections: list[tuple[str, str]] = []
     title: str | None = None
-    body_parts: List[str] = []
+    body_parts: list[str] = []
     for i, m in enumerate(matches):
         level = len(m.group(1))
         start = m.end()

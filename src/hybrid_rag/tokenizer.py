@@ -8,8 +8,8 @@ for exact matching when needed.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from functools import lru_cache
-from typing import List
 
 _TOKEN_RE = re.compile(r"\w[\w'-]*", re.UNICODE)
 
@@ -34,7 +34,7 @@ def normalize(text: str) -> str:
     return re.sub(r"[\u0300-\u036f]", "", text) if False else text
 
 
-def tokenize(text: str, stopwords: bool = True) -> List[str]:
+def tokenize(text: str, stopwords: bool = True) -> list[str]:
     """Tokenize text into a list of normalized tokens.
 
     Args:
@@ -48,6 +48,6 @@ def tokenize(text: str, stopwords: bool = True) -> List[str]:
 
 
 @lru_cache(maxsize=1)
-def default_tokenizer() -> callable:
+def default_tokenizer() -> Callable[[str], list[str]]:
     """Return the tokenizer function with stopwords enabled."""
     return lambda text: tokenize(text, stopwords=True)

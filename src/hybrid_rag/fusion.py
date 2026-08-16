@@ -10,14 +10,14 @@ from a ranked list simply contribute 0 for that list.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 
 def rrf_fuse(
-    ranked_lists: Sequence[List[tuple[str, float]]],
+    ranked_lists: Sequence[list[tuple[str, float]]],
     k: int = 60,
     weights: Sequence[float] | None = None,
-) -> List[tuple[str, float]]:
+) -> list[tuple[str, float]]:
     """Fuse several [(doc_id, score), ...] lists into one ranked list.
 
     Args:
@@ -30,7 +30,7 @@ def rrf_fuse(
     """
     if weights is None:
         weights = [1.0] * len(ranked_lists)
-    fused: Dict[str, float] = {}
+    fused: dict[str, float] = {}
     for lst, w in zip(ranked_lists, weights):
         for rank, (doc_id, _score) in enumerate(lst, start=1):
             fused[doc_id] = fused.get(doc_id, 0.0) + w / (k + rank)

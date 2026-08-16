@@ -5,8 +5,6 @@ retrieves candidates from both, fuses them with RRF, and optionally reranks.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from .bm25 import BM25
 from .embeddings import DenseIndex
 from .fusion import rrf_fuse
@@ -16,7 +14,7 @@ from .rerank import CrossEncoderReranker, reranker_enabled
 class HybridRetriever:
     def __init__(
         self,
-        dense_index: Optional[DenseIndex] = None,
+        dense_index: DenseIndex | None = None,
         k1: float = 1.5,
         b: float = 0.75,
         rrf_k: int = 60,
@@ -25,14 +23,14 @@ class HybridRetriever:
         rerank_top_n: int = 20,
     ) -> None:
         self.dense = dense_index or DenseIndex()
-        self.bm25: Optional[BM25] = None
+        self.bm25: BM25 | None = None
         self.rrf_k = rrf_k
         self.weights = [bm25_weight, dense_weight]
         self.rerank_top_n = rerank_top_n
-        self.doc_map: Dict[str, str] = {}
-        self._reranker: Optional[CrossEncoderReranker] = None
+        self.doc_map: dict[str, str] = {}
+        self._reranker: CrossEncoderReranker | None = None
 
-    def build(self, docs: List[tuple[str, str]]) -> None:
+    def build(self, docs: list[tuple[str, str]]) -> None:
         """docs: [(doc_id, text), ...]"""
         self.doc_map = dict(docs)
         self.bm25 = BM25(docs, k1=self.bm25.k1 if self.bm25 else 1.5, b=self.bm25.b if self.bm25 else 0.75)
@@ -41,7 +39,7 @@ class HybridRetriever:
             self._reranker = CrossEncoderReranker()
             self._reranker.set_docs(self.doc_map)
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[tuple[str, float]]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[tuple[str, float]]:
         if self.bm25 is None:
             raise RuntimeError("build() must be called before retrieve()")
         bm25_hits = self.bm25.search(query, top_k=self.rerank_top_n)

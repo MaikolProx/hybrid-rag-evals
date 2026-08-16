@@ -5,33 +5,38 @@ hit the vector path stay fast and offline-friendly.
 """
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
+from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
 class DenseIndex:
     """Cosine-similarity vector store over an embedding model."""
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", device: Optional[str] = None) -> None:
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", device: str | None = None) -> None:
         self.model_name = model_name
         self.device = device
-        self._model = None
-        self.doc_ids: List[str] = []
-        self._vectors: Optional[np.ndarray] = None
+        self._model: SentenceTransformer | None = None
+        self.doc_ids: list[str] = []
+        self._vectors: NDArray[np.float32] | None = None
 
-    def _get_model(self):
+    def _get_model(self) -> SentenceTransformer:
         if self._model is None:
             from sentence_transformers import SentenceTransformer
 
             self._model = SentenceTransformer(self.model_name, device=self.device)
         return self._model
 
-    def embed(self, texts: List[str]) -> np.ndarray:
+    def embed(self, texts: list[str]) -> NDArray[np.float32]:
         model = self._get_model()
-        return model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
+        result = model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
+        return np.asarray(result, dtype=np.float32)
 
-    def add(self, doc_ids: List[str], texts: List[str]) -> None:
+    def add(self, doc_ids: list[str], texts: list[str]) -> None:
         vectors = self.embed(texts)
         if self._vectors is None:
             self._vectors = vectors
@@ -39,7 +44,7 @@ class DenseIndex:
             self._vectors = np.vstack([self._vectors, vectors])
         self.doc_ids.extend(doc_ids)
 
-    def search(self, query: str, top_k: int = 10) -> List[tuple[str, float]]:
+    def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
         if self._vectors is None or len(self.doc_ids) == 0:
             return []
         q = self.embed([query])[0]

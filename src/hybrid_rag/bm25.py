@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter, defaultdict
-from typing import Dict, List, Sequence
+from collections.abc import Callable, Sequence
 
 import numpy as np
 
@@ -32,20 +32,20 @@ class BM25:
         corpus: Sequence[tuple[str, str]],
         k1: float = 1.5,
         b: float = 0.75,
-        tokenizer: callable = tokenize,
+        tokenizer: Callable[[str], list[str]] = tokenize,
     ) -> None:
         self.k1 = k1
         self.b = b
         self.tokenizer = tokenizer
-        self.doc_ids: List[str] = []
-        self.doc_lens: List[int] = []
+        self.doc_ids: list[str] = []
+        self.doc_lens: list[int] = []
         self.avg_doc_len: float = 0.0
-        self._df: Dict[str, int] = defaultdict(int)
-        self._postings: Dict[str, Dict[str, int]] = defaultdict(dict)  # term -> {doc_id: tf}
+        self._df: dict[str, int] = defaultdict(int)
+        self._postings: dict[str, dict[str, int]] = defaultdict(dict)  # term -> {doc_id: tf}
         self._build(corpus)
 
     def _build(self, corpus: Sequence[tuple[str, str]]) -> None:
-        doc_term_counts: Dict[str, Counter] = {}
+        doc_term_counts: dict[str, Counter[str]] = {}
         for doc_id, text in corpus:
             self.doc_ids.append(doc_id)
             tokens = self.tokenizer(text)
@@ -72,7 +72,7 @@ class BM25:
         denom = tf + self.k1 * (1.0 - self.b + self.b * dl / self.avg_doc_len)
         return idf * (tf * (self.k1 + 1.0)) / denom
 
-    def search(self, query: str, top_k: int = 10) -> List[tuple[str, float]]:
+    def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
         """Return [(doc_id, score), ...] sorted by descending score.
 
         Documents that do not contain any query term get score 0 and are

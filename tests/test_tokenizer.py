@@ -1,4 +1,4 @@
-from hybrid_rag.tokenizer import tokenize, normalize
+from hybrid_rag.tokenizer import normalize, tokenize
 
 
 def test_tokenize_removes_stopwords():
