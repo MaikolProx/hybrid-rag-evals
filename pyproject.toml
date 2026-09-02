@@ -23,6 +23,22 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--cov=src/hybrid_rag", "--cov-report=term-missing", "--cov-report=xml"]
+
+[tool.coverage.run]
+source = ["src/hybrid_rag"]
+branch = true
+omit = ["tests/*", "*/__pycache__/*", "*/egg-info/*"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+    "pass",
+]
 
 [tool.ruff]
 line-length = 100
